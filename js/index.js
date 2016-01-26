@@ -1,47 +1,34 @@
 // triangulation using https://github.com/ironwallaby/delaunay
 
 const TWO_PI = Math.PI * 2;
-
-var images = [],
-    imageIndex = 0;
-
-var image,
-    image2,
-    imageWidth = 768,
-    imageHeight = 485;
-
+var WC_IMG, AD_IMG;
 var vertices = [],
     indices = [],
-    fragments = [];
+    fragments = [],
+    clickPos;
 
 var container = document.getElementById('container');
 
-var clickPosition = [imageWidth * 0.5, imageHeight * 0.5];
+function init(){
+    window.onload = function() {
 
-window.onload = function() {
-    TweenMax.set(container, {
-        perspective: 500
-    });
+        WC_IMG = new Image();
+        AD_IMG = new Image();
 
-    // images from reddit/r/wallpapers
-    var urls = [
-            'https://s3-us-west-2.amazonaws.com/s.cdpn.io/175711/crayon.jpg',
-            'https://s3-us-west-2.amazonaws.com/s.cdpn.io/175711/spaceship.jpg',
-            'https://s3-us-west-2.amazonaws.com/s.cdpn.io/175711/dj.jpg',
-            'https://s3-us-west-2.amazonaws.com/s.cdpn.io/175711/chicken.jpg'
-        ],
-        image,
-        loaded = 0;
-    images[0] = image = new Image();
-    images[1] = image2 = new Image();
+        WC_IMG.src = 'https://s3-us-west-2.amazonaws.com/s.cdpn.io/175711/crayon.jpg';
+        AD_IMG.src = 'https://s3-us-west-2.amazonaws.com/s.cdpn.io/175711/chicken.jpg';
 
-    image.onload = function() {
-        imagesLoaded();
-    }
+        WC_IMG.width = AD_IMG.width = 768;
+        WC_IMG.height = AD_IMG.height = 485;
 
-    image.src = urls[0];
-    image2.src = urls[1];
-};
+        clickPos = [WC_IMG.width * 0.5, WC_IMG.height * 0.5];
+
+        AD_IMG.onload = function() {
+            imagesLoaded();
+        }
+    };
+}
+
 
 function imagesLoaded() {
     placeImage(false);
@@ -50,16 +37,13 @@ function imagesLoaded() {
 }
 
 function placeImage(transitionIn) {
-    image = images[0];
-    image2 = images[1];
 
-   // image.addEventListener('click', imageClickHandler);
-
-    container.appendChild(image);
-    container.appendChild(image2);
+    container.appendChild(WC_IMG);
+    container.appendChild(AD_IMG);
 
     if (transitionIn !== false) {
-        TweenMax.fromTo(image, 0.75, {
+
+        TweenMax.fromTo(WC_IMG, 0.75, {
             y: -1000
         }, {
             y: 0,
@@ -69,12 +53,12 @@ function placeImage(transitionIn) {
 }
 
 function imageClickHandler(event) {
-    var box = image.getBoundingClientRect(),
+    var box = WC_IMG.getBoundingClientRect(),
         top = box.top,
         left = box.left;
 
-    clickPosition[0] = event.clientX - left;
-    clickPosition[1] = event.clientY - top;
+    clickPos[0] = event.clientX - left;
+    clickPos[1] = event.clientY - top;
 
     triangulate();
     shatter();
@@ -97,8 +81,10 @@ function triangulate() {
         ],
         x,
         y,
-        centerX = clickPosition[0],
-        centerY = clickPosition[1];
+        centerX = clickPos[0],
+        centerY = clickPos[1];
+
+    console.log("click: " + clickPos);
 
     vertices.push([centerX, centerY]);
 
@@ -115,8 +101,8 @@ function triangulate() {
     });
 
     vertices.forEach(function(v) {
-        v[0] = clamp(v[0], 0, imageWidth);
-        v[1] = clamp(v[1], 0, imageHeight);
+        v[0] = clamp(v[0], 0, WC_IMG.width);
+        v[1] = clamp(v[1], 0, WC_IMG.height);
     });
 
     indices = Delaunay.triangulate(vertices);
@@ -137,8 +123,8 @@ function shatter() {
 
         fragment = new Fragment(p0, p1, p2);
 
-        var dx = fragment.centroid[0] - clickPosition[0],
-            dy = fragment.centroid[1] - clickPosition[1],
+        var dx = fragment.centroid[0] - clickPos[0],
+            dy = fragment.centroid[1] - clickPos[1],
             d = Math.sqrt(dx * dx + dy * dy),
             rx = 30 * sign(dy),
             ry = 90 * -sign(dx),
@@ -149,26 +135,25 @@ function shatter() {
 
 
         tl1.to(fragment.canvas, 1, {
-            z: 100,
-            rotationX: 0 * rx,
-            rotationY: 0 * ry,
+            z: -100,
+            rotationX: 1 * rx,
+            rotationY: 1 * ry,
             ease: Cubic.easeIn
         });
 
         tl0.insert(tl1, delay);
-
         fragments.push(fragment);
         container.appendChild(fragment.canvas);
     }
 
-    container.removeChild(image);
-    image.removeEventListener('click', imageClickHandler);
+    container.removeChild(WC_IMG);
+    WC_IMG.removeEventListener('click', imageClickHandler);
 }
 
 function shatterCompleteHandler() {
     // add pooling?
     fragments.forEach(function(f) {
-        container.removeChild(f.canvas);
+        //container.removeChild(f.canvas);
     });
     fragments.length = 0;
     vertices.length = 0;
@@ -245,6 +230,8 @@ Fragment.prototype = {
         this.ctx.lineTo(this.v2[0], this.v2[1]);
         this.ctx.closePath();
         this.ctx.clip();
-        this.ctx.drawImage(image, 0, 0);
+        this.ctx.drawImage(WC_IMG, 0, 0);
     }
 };
+
+init();
