@@ -34,11 +34,11 @@ window.onload = function() {
         loaded = 0;
     images[0] = image = new Image();
     images[1] = image2 = new Image();
-    
+
     image.onload = function() {
         imagesLoaded();
     }
-    
+
     image.src = urls[0];
     image2.src = urls[1];
 };
@@ -150,13 +150,10 @@ function shatter() {
 
         tl1.to(fragment.canvas, 1, {
             z: 100,
-            rotationX: 0.1 * rx,
-            rotationY: 0.1 * ry,
+            rotationX: 0 * rx,
+            rotationY: 0 * ry,
             ease: Cubic.easeIn
         });
-        tl1.to(fragment.canvas, 0.4, {
-            alpha: 0.0
-        }, 0.6);
 
         tl0.insert(tl1, delay);
 
