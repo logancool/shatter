@@ -16,6 +16,7 @@ var closeBtn = document.getElementById("close_btn");
 function init() {
     window.onload = function () {
 
+        TweenMax.set(wc_cont, {perspective:100});
 
         WC_IMG = new Image();
         AD_IMG = new Image();
@@ -66,7 +67,7 @@ function resetAd() {
 }
 
 function placeAd(clickPos) {
-    console.log("b: " + clickPos[1]);
+
     fade(AD_IMG, 0, 1); // fade the ad out
 
     ad_cont.style.marginTop = 0;
@@ -169,16 +170,16 @@ function shatter(clickPos) {
             d = Math.sqrt(dx * dx + dy * dy),
             rx = 30 * sign(dy),
             ry = 90 * -sign(dx),
-            delay = d * 0.003 * randomRange(0.9, 1.1);
+            delay = d * 0.001 * randomRange(1, 1.1);
         fragment.canvas.style.zIndex = Math.floor(d).toString();
 
         var tl1 = new TimelineMax();
 
 
         tl1.to(fragment.canvas, 1, {
-            z: -500,
-            rotationX: rx,
-            rotationY: ry,
+            z: -100,
+            rotationX: 1,
+            rotationY: 1,
             ease: Cubic.easeIn
         });
         tl1.to(fragment.canvas, 0.4, {alpha: 0}, 0.6);
@@ -223,6 +224,15 @@ function sign(x) {
 // FRAGMENT
 //////////////
 
+function isRetina() {
+    if (window.devicePixelRatio > 1) {
+        return true;
+    }
+    else {
+        return false;
+    }
+}
+
 Fragment = function (v0, v1, v2) {
     this.v0 = v0;
     this.v1 = v1;
@@ -240,12 +250,22 @@ Fragment.prototype = {
             yMin = Math.min(this.v0[1], this.v1[1], this.v2[1]),
             yMax = Math.max(this.v0[1], this.v1[1], this.v2[1]);
 
-        this.box = {
-            x: xMin,
-            y: yMin,
-            w: xMax - xMin,
-            h: yMax - yMin
-        };
+        if (isRetina()){
+            this.box = {
+                x: xMin/2,
+                y: yMin/2,
+                w: (xMax - xMin)/2,
+                h: (yMax - yMin)/2
+            };
+        }
+        else {
+            this.box = {
+                x: xMin,
+                y: yMin,
+                w: xMax - xMin,
+                h: yMax - yMin
+            };
+        }
     },
     computeCentroid: function () {
         var x = (this.v0[0] + this.v1[0] + this.v2[0]) / 3,
