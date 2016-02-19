@@ -17,13 +17,21 @@ img {
     cursor: pointer;
 }
 
-#container {
+#wc_cont, #ad_cont {
     position: absolute;
-    width: 768px;
-    height: 485px;
     left: 0;
     right: 0;
     top: 0;
     bottom: 0;
     margin: auto;
+}
+#close_btn{
+    position: absolute;
+    width: 50px;
+    height: 50px;
+    top: 10px;
+    right: 10px;
+    cursor: pointer;
+    background-image: url('../images/close_btn.png');
+    display: none;
 }
