@@ -7,8 +7,6 @@ var vertices = [],
     indices = [],
     fragments = [];
 
-dur = 0;
-
 var wc_cont = document.getElementById('wc_cont');
 var ad_cont = document.getElementById('ad_cont');
 var closeBtn = document.getElementById("close_btn");
@@ -16,14 +14,15 @@ var closeBtn = document.getElementById("close_btn");
 function init() {
     window.onload = function () {
 
-        TweenMax.set(wc_cont, {perspective:100});
+
+        window.addEventListener('resize', onReszie);
 
         WC_IMG = new Image();
         AD_IMG = new Image();
 
         WC_IMG.src = 'images/WC_1.png';
         AD_IMG.src = 'images/AU_1.jpg';
-        WC_IMG.width = wc_cont.style.width = screen.width;
+        WC_IMG.width = wc_cont.style.width = window.innerWidth;
         AD_IMG.width = 768;
         AD_IMG.height = 485;
         ad_cont.style.width = AD_IMG.width + 'px';
@@ -59,16 +58,16 @@ function closeClicked() {
 
 
 function resetAd() {
+    TweenMax.set(wc_cont, {perspective:200});
+    TweenMax.set(ad_cont, {scale:0.01});
     wc_cont.appendChild(WC_IMG);
     WC_IMG.addEventListener('click', initShatterObj);
     fade(WC_IMG, 0, 1); //fade the website back
-    fade(AD_IMG, 0, 1); // fade the ad out
     AD_IMG.style.display = "block";
 }
 
 function placeAd(clickPos) {
-
-    fade(AD_IMG, 0, 1); // fade the ad out
+    fade(AD_IMG, 0, 1); // fade the ad in
 
     ad_cont.style.marginTop = 0;
     ad_cont.style.marginLeft = 0;
@@ -77,13 +76,16 @@ function placeAd(clickPos) {
     ad_cont.style.top = clickPos[1] - ad_cont.clientHeight / 2 + 'px';
     ad_cont.style.left = clickPos[0] - ad_cont.clientWidth / 2 + 'px';
 
-    var tempX = screen.width / 2 - ad_cont.clientWidth / 2;
-    var tempY = screen.height / 2 - ad_cont.clientHeight / 2
-    setTimeout(function () {
-        TweenLite.to(ad_cont, DURATION, {left: tempX, top: tempY});
-    }, 4000);
 
 
+        centerAd();
+
+
+
+}
+
+function centerAd() {
+    TweenLite.to(ad_cont, 5, {left: window.innerWidth / 2 - ad_cont.clientWidth / 2, top: window.innerHeight / 2 - ad_cont.clientHeight / 2, scale:1});
 }
 
 function initShatterObj(event) {
@@ -97,29 +99,35 @@ function initShatterObj(event) {
 
 
     ad_cont.appendChild(AD_IMG);
-    wc_cont.removeChild(WC_IMG);
+    //fade(wc_cont, 1, 0);
+    //wc_cont.removeChild(WC_IMG);
 
     triangulate(clickPos);
     shatter(clickPos);
     addCloseBtn();
     placeAd(clickPos);
+    wc_cont.removeChild(WC_IMG);
 
 }
 
 function triangulate(clickPos) {
     var rings = [{
             r: 50,
-            c: 12
+            c: 10
         }, {
             r: 150,
-            c: 12
+            c: 10
         }, {
             r: 300,
-            c: 12
+            c: 10
         }, {
             r: 1200,
-            c: 12
-        } // very large in case of corner clicks
+            c: 10
+        },
+        {
+            r: 3200,
+            c: 20
+        }// very large in case of corner clicks
         ],
         x,
         y,
@@ -143,8 +151,8 @@ function triangulate(clickPos) {
     });
 
     vertices.forEach(function (v) {
-        v[0] = clamp(v[0], 0, WC_IMG.width);
-        v[1] = clamp(v[1], 0, WC_IMG.height);
+        v[0] = clamp(v[0], 1, WC_IMG.width*2);
+        v[1] = clamp(v[1],1, WC_IMG.height*2);
     });
 
     indices = Delaunay.triangulate(vertices);
@@ -177,7 +185,7 @@ function shatter(clickPos) {
 
 
         tl1.to(fragment.canvas, 1, {
-            z: -100,
+            z: -1000,
             rotationX: 1,
             rotationY: 1,
             ease: Cubic.easeIn
@@ -220,6 +228,19 @@ function sign(x) {
     return x < 0 ? -1 : 1;
 }
 
+function onReszie() {
+    var id;
+    $(window).resize(function() {
+        clearTimeout(id);
+        id = setTimeout(doneResizing, 500);
+
+    });
+
+    function doneResizing(){
+        centerAd();
+    }
+}
+
 //////////////
 // FRAGMENT
 //////////////
@@ -250,22 +271,13 @@ Fragment.prototype = {
             yMin = Math.min(this.v0[1], this.v1[1], this.v2[1]),
             yMax = Math.max(this.v0[1], this.v1[1], this.v2[1]);
 
-        if (isRetina()){
-            this.box = {
-                x: xMin/2,
-                y: yMin/2,
-                w: (xMax - xMin)/2,
-                h: (yMax - yMin)/2
-            };
-        }
-        else {
-            this.box = {
-                x: xMin,
-                y: yMin,
-                w: xMax - xMin,
-                h: yMax - yMin
-            };
-        }
+        this.box = {
+            x: xMin,
+            y: yMin,
+            w: (xMax - xMin),
+            h: (yMax - yMin)
+        };
+
     },
     computeCentroid: function () {
         var x = (this.v0[0] + this.v1[0] + this.v2[0]) / 3,
@@ -282,6 +294,11 @@ Fragment.prototype = {
         this.canvas.style.left = this.box.x + 'px';
         this.canvas.style.top = this.box.y + 'px';
         this.ctx = this.canvas.getContext('2d');
+
+        if (isRetina()){
+            this.ctx.scale(0.75,0.75);
+        }
+
     },
     clip: function () {
         this.ctx.translate(-this.box.x, -this.box.y);
