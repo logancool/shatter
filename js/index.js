@@ -22,12 +22,11 @@ function init() {
 
         WC_IMG.src = 'images/WC_1.png';
         AD_IMG.src = 'images/AU_1.jpg';
-        WC_IMG.width = wc_cont.style.width = window.innerWidth;
+        //WC_IMG.width = wc_cont.style.width = window.innerWidth;
         AD_IMG.width = 768;
         AD_IMG.height = 485;
         ad_cont.style.width = AD_IMG.width + 'px';
         ad_cont.style.height = AD_IMG.height + 'px';
-        //WC_IMG.style.zIndex = 2;
 
         resetAd();
 
@@ -42,7 +41,6 @@ function addCloseBtn() {
 
 function closeClicked() {
 
-    wc_cont.appendChild(WC_IMG);
     ad_cont.removeChild(AD_IMG);
 
     //hide the image behind
@@ -50,17 +48,19 @@ function closeClicked() {
     closeBtn.style.display = "none";
 
     //remove previous listeners
-    WC_IMG.removeEventListener('click', initShatterObj);
-    closeBtn.removeEventListener("click", closeClicked);
+    WC_IMG.removeEventListener('click');
+    closeBtn.removeEventListener('click');
 
     resetAd();
 }
 
 
 function resetAd() {
-    TweenMax.set(wc_cont, {perspective:200});
+    TweenMax.set(wc_cont, {perspective:200, z:1});
     TweenMax.set(ad_cont, {scale:0.01});
+
     wc_cont.appendChild(WC_IMG);
+
     WC_IMG.addEventListener('click', initShatterObj);
     fade(WC_IMG, 0, 1); //fade the website back
     AD_IMG.style.display = "block";
@@ -68,24 +68,22 @@ function resetAd() {
 
 function placeAd(clickPos) {
     fade(AD_IMG, 0, 1); // fade the ad in
-
     ad_cont.style.marginTop = 0;
     ad_cont.style.marginLeft = 0;
     ad_cont.style.marginRight = 0;
     ad_cont.style.marginBottom = 0;
     ad_cont.style.top = clickPos[1] - ad_cont.clientHeight / 2 + 'px';
     ad_cont.style.left = clickPos[0] - ad_cont.clientWidth / 2 + 'px';
-
-
-
-        centerAd();
-
-
-
+    centerAd();
+    zoomAd();
 }
 
 function centerAd() {
-    TweenLite.to(ad_cont, 5, {left: window.innerWidth / 2 - ad_cont.clientWidth / 2, top: window.innerHeight / 2 - ad_cont.clientHeight / 2, scale:1});
+    TweenLite.to(ad_cont,3, {left: window.innerWidth / 2 - ad_cont.clientWidth / 2, top: window.innerHeight / 2 - ad_cont.clientHeight / 2});
+}
+function zoomAd() {
+    TweenLite.to(ad_cont, 2, {scale:1});
+
 }
 
 function initShatterObj(event) {
@@ -97,10 +95,7 @@ function initShatterObj(event) {
     clickPos[0] = event.clientX - left;
     clickPos[1] = event.clientY - top;
 
-
     ad_cont.appendChild(AD_IMG);
-    //fade(wc_cont, 1, 0);
-    //wc_cont.removeChild(WC_IMG);
 
     triangulate(clickPos);
     shatter(clickPos);
@@ -185,7 +180,7 @@ function shatter(clickPos) {
 
 
         tl1.to(fragment.canvas, 1, {
-            z: -1000,
+            z: -500,
             rotationX: 1,
             rotationY: 1,
             ease: Cubic.easeIn
@@ -237,7 +232,7 @@ function onReszie() {
     });
 
     function doneResizing(){
-        centerAd();
+        cenlrAd();
     }
 }
 
@@ -295,9 +290,9 @@ Fragment.prototype = {
         this.canvas.style.top = this.box.y + 'px';
         this.ctx = this.canvas.getContext('2d');
 
-        if (isRetina()){
-            this.ctx.scale(0.75,0.75);
-        }
+        //if (isRetina()){
+          //  this.ctx.scale(0.75,0.75);
+        //}
 
     },
     clip: function () {
