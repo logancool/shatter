@@ -94,7 +94,7 @@ function initShatterObj(event) {
 
     clickPos[0] = event.clientX - left;
     clickPos[1] = event.clientY - top;
-
+    
     ad_cont.appendChild(AD_IMG);
 
     triangulate(clickPos);
@@ -232,7 +232,7 @@ function onReszie() {
     });
 
     function doneResizing(){
-        cenlrAd();
+        centerAd();
     }
 }
 
